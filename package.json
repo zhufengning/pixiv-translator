@@ -1,5 +1,6 @@
 {
   "name": "pixiv-translator",
+  "license": "GPL3",
   "scripts": {
     "tauri": "tauri"
   },
