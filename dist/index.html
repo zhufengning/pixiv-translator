@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="mdui/css/mdui.min.css">
+  <script src="mdui/js/mdui.min.js"></script>
+  <script src="vue.js"></script>
+</head>
+
+<body>
+  <div class="mdui-appbar">
+    <div class="mdui-toolbar mdui-color-cyan">
+      <span class="mdui-typo-title">P</span>
+    </div>
+  </div>
+  <div class="mdui-container" id="app">
+    <div class="mdui-typo">
+      <hr />
+    </div>
+    <p v-html="msg"></p>
+    <div class="mdui-typo">
+      <hr />
+    </div>
+    <div class="mdui-card">
+      <div class="mdui-card-content">
+        <div class="mdui-row">
+          <div class="mdui-textfield">
+            <input class="mdui-textfield-input" type="text" v-model="appid" />
+            <div class="mdui-textfield-helper">appid</div>
+          </div>
+          <div class="mdui-textfield">
+            <input class="mdui-textfield-input" type="text" v-model="key" />
+            <div class="mdui-textfield-helper">key</div>
+          </div>
+        </div>
+      </div>
+      <div class="mdui-card-actions">
+        <button class="mdui-btn mdui-ripple" v-bind:onclick="setKey">记住api</button>
+        <button class="mdui-btn mdui-ripple" v-bind:onclick="getKey">想起api</button>
+      </div>
+    </div>
+    <div class="mdui-typo">
+      <hr />
+    </div>
+    <div class="mdui-card">
+      <div class="mdui-card-content">
+        <div class="mdui-row">
+          <div class="mdui-textfield">
+            <input class="mdui-textfield-input" type="text" v-model="port" />
+            <div class="mdui-textfield-helper">端口</div>
+          </div>
+        </div>
+      </div>
+      <div class="mdui-card-actions">
+        <button class="mdui-btn mdui-ripple" v-bind:onclick="start" v-bind:disabled="cannot_start">启动服务</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // With the Tauri API npm package:
+    //import { invoke } from '@tauri-apps/api/tauri'
+    // With the Tauri global script, enabled when `tauri.conf.json > build > withGlobalTauri` is set to true:
+    const invoke = window.__TAURI__.invoke
+    const app = {
+      data() {
+        return {
+          appid: "",
+          key: "",
+          port: 3030,
+          msg: "hello",
+          cannot_start: null
+        }
+      },
+      async mounted() {
+          invoke('get_key').then((message) => {
+            this.appid = message[0]
+            this.key = message[1]
+          })
+      },
+      methods: {
+        async start() {
+          this.msg = "服务器出发了，不知是否顺利，快打开<a target='_blank' href='http://127.0.0.1:" + this.port + "'>我</a>看看吧"
+          this.cannot_start = true
+          r = await invoke('startp', { appid: this.appid, key: this.key })
+          console.log(r)
+          this.msg = "服务器停止了"
+        },
+
+        setKey() {
+          invoke('write_key', { appid: this.appid, key: this.key })
+        },
+        getKey() {
+          invoke('get_key').then((message) => {
+            this.appid = message[0]
+            this.key = message[1]
+          })
+        }
+      }
+    }
+
+    Vue.createApp(app).mount('#app')
+
+  </script>
+</body>
+
+</html>
